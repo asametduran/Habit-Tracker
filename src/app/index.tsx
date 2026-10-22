@@ -1,62 +1,69 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { ConfettiBurst } from '@/components/confetti-burst';
+import { DailyProgressBar } from '@/components/daily-progress-bar';
+import { HabitCard } from '@/components/habit-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useHabitRewards } from '@/hooks/use-habit-rewards';
+import { useHabits } from '@/hooks/use-habits';
+import { isCompleted } from '@/lib/habit-logic';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+export default function TodayScreen() {
+  const insets = useSafeAreaInsets();
+  const { habits } = useHabits();
+  const { toggleDaily, incrementQuantity, decrementQuantity, lastEvent } = useHabitRewards();
 
-export default function HomeScreen() {
+  const completedCount = habits.filter(isCompleted).length;
+  const confettiKey = lastEvent?.type === 'allDone' ? lastEvent.key : 0;
+  const milestone =
+    lastEvent?.type === 'milestone'
+      ? { habitId: lastEvent.habitId, key: lastEvent.key }
+      : lastEvent?.type === 'allDone' && lastEvent.milestone
+        ? { habitId: lastEvent.milestone.habitId, key: lastEvent.key }
+        : null;
+
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
+      <View
+        style={[
+          styles.safeArea,
+          // Clear the status bar / notch / Dynamic Island on top of the normal page padding.
+          Platform.OS !== 'web' && { paddingTop: insets.top + Spacing.three },
+        ]}>
+        <ThemedText type="title" style={styles.title}>
+          Today
         </ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <DailyProgressBar completed={completedCount} total={habits.length} />
+
+        <FlatList
+          data={habits}
+          keyExtractor={(habit) => habit.id}
+          contentContainerStyle={styles.listContent}
+          style={styles.list}
+          renderItem={({ item }) => (
+            <HabitCard
+              habit={item}
+              onToggle={toggleDaily}
+              onIncrement={incrementQuantity}
+              onDecrement={decrementQuantity}
+              pulseKey={milestone?.habitId === item.id ? milestone.key : 0}
+            />
+          )}
+          ListEmptyComponent={
+            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyText}>
+              No habits yet — add one in the Manage tab.
+            </ThemedText>
+          }
+        />
 
         {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
+      </View>
+      <ConfettiBurst triggerKey={confettiKey} />
     </ThemedView>
   );
 }
@@ -64,35 +71,30 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     flexDirection: 'row',
   },
   safeArea: {
     flex: 1,
+    width: '100%',
     paddingHorizontal: Spacing.four,
-    alignItems: 'center',
     gap: Spacing.three,
+    paddingTop: Platform.OS === 'web' ? Spacing.six + Spacing.three : Spacing.four,
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    alignSelf: 'center',
   },
   title: {
+    fontSize: 32,
+    lineHeight: 40,
+  },
+  list: {
+    flexGrow: 0,
+  },
+  listContent: {
+    gap: Spacing.two,
+  },
+  emptyText: {
     textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+    marginTop: Spacing.four,
   },
 });

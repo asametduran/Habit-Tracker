@@ -24,6 +24,11 @@ export const Colors = {
   },
 } as const;
 
+/** Brand blue, and the fixed text color for anything drawn on top of it (never theme-dependent). */
+export const Accent = '#3c87f7';
+export const OnAccent = '#ffffff';
+export const Danger = '#f75c5c';
+
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({

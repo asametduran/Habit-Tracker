@@ -7,3 +7,8 @@
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
 }
+
+/* Stop Chrome's auto-dark-mode from recoloring text and backgrounds independently. */
+:root {
+  color-scheme: light dark;
+}
