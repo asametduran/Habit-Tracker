@@ -82,6 +82,9 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
+    // The row container centers this block vertically. Without a cap it grows past the screen
+    // and overflows both ways, pushing the title up under the status bar / top tab bar.
+    maxHeight: '100%',
   },
   title: {
     fontSize: 32,
