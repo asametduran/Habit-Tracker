@@ -1,4 +1,4 @@
-# Habit Tracker
+# HabiTracker
 
 A local-only habit tracker built with Expo (SDK 57), React Native and TypeScript. All data stays on the device.
 

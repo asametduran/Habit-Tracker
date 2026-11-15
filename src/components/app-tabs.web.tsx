@@ -64,7 +64,7 @@ export function CustomTabList(props: TabListProps) {
         style={[styles.innerContainer, narrow && styles.innerContainerNarrow]}>
         {narrow ? null : (
           <ThemedText type="smallBold" style={styles.brandText}>
-            Habit Tracker
+            HabiTracker
           </ThemedText>
         )}
 

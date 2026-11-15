@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "exampleProject",
-    "slug": "exampleProject",
+    "name": "HabiTracker",
+    "slug": "habitracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "exampleproject",
+    "scheme": "habitracker",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
