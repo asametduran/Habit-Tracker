@@ -6,7 +6,14 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { Pressable, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { useSyncExternalStore, type Ref } from 'react';
+import {
+  Pressable,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+  type PressableInstance,
+} from 'react-native';
 
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -40,10 +47,28 @@ export default function AppTabs() {
 
 const NARROW_WIDTH = 600;
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
-  const narrow = useWindowDimensions().width < NARROW_WIDTH;
+const subscribe = () => () => {};
+
+/**
+ * Narrow layout below NARROW_WIDTH. The static HTML is rendered in Node, where the window has no
+ * width, so it's narrow; the first browser render must match it (or React throws away the page
+ * and renders it again), and the real width applies right after hydration.
+ */
+function useNarrow(): boolean {
+  const width = useWindowDimensions().width;
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+  return hydrated ? width < NARROW_WIDTH : true;
+}
+
+export function TabButton({ children, isFocused, ref, ...props }: TabTriggerSlotProps) {
+  const narrow = useNarrow();
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable
+      {...props}
+      // expo-router types this ref as Ref<View>, which React Native 0.88 no longer accepts
+      // for a Pressable; at runtime it's the same host-element ref, passed straight through.
+      ref={ref as unknown as Ref<PressableInstance>}
+      style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={[styles.tabButtonView, narrow && styles.tabButtonViewNarrow]}>
@@ -56,7 +81,7 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 }
 
 export function CustomTabList(props: TabListProps) {
-  const narrow = useWindowDimensions().width < NARROW_WIDTH;
+  const narrow = useNarrow();
   return (
     <View {...props} style={[styles.tabListContainer, narrow && styles.tabListContainerNarrow]}>
       <ThemedView

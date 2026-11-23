@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { isCompleted, type Habit, type Settings } from '@/lib/habit-logic';
@@ -27,7 +28,7 @@ export async function ensurePermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Habit reminders',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: AndroidImportance.DEFAULT,
     });
   }
   const current = await Notifications.getPermissionsAsync();
@@ -56,8 +57,13 @@ async function scheduleToday(id: string, hour: number, title: string, body: stri
 /**
  * Re-derives all three local notifications from the current settings and habit state.
  * Cheap and idempotent — called when settings change and whenever the app backgrounds.
+ * With `coachPush`, the AI coach sends the afternoon nudge as a push from the server instead.
  */
-export async function syncNotifications(settings: Settings, habits: Habit[]): Promise<void> {
+export async function syncNotifications(
+  settings: Settings,
+  habits: Habit[],
+  { coachPush = false }: { coachPush?: boolean } = {},
+): Promise<void> {
   const anyEnabled = settings.dailyReminder || settings.afternoonNudge || settings.streakAlert;
   if (!anyEnabled) {
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -99,7 +105,7 @@ export async function syncNotifications(settings: Settings, habits: Habit[]): Pr
 
   const incomplete = habits.filter((habit) => !isCompleted(habit));
 
-  if (settings.afternoonNudge && incomplete.length > 0) {
+  if (settings.afternoonNudge && !coachPush && incomplete.length > 0) {
     await scheduleToday(
       IDS.nudge,
       NUDGE_HOUR,

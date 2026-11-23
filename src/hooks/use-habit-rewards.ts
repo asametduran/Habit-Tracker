@@ -1,4 +1,4 @@
-import { useAudioPlayer } from 'expo-audio';
+import { createAudioPlayer, type AudioPlayer, type AudioSource } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
@@ -20,14 +20,44 @@ type NewRewardEvent = RewardEvent extends infer E ? (E extends unknown ? Omit<E,
 
 const EVENT_LIFETIME_MS = 2500;
 
+const CHIME: AudioSource = require('@/assets/sounds/chime.wav');
+const CELEBRATION: AudioSource = require('@/assets/sounds/celebration.wav');
+
+/**
+ * Plays a short sound. The player is made after mount, not during render: expo-audio's
+ * useAudioPlayer builds an <audio> element while rendering on web, which crashes the static
+ * export (pages render in Node, where there is no `Audio`). Effects only run on the device.
+ */
+function useSoundEffect(source: AudioSource) {
+  const player = useRef<AudioPlayer | null>(null);
+
+  useEffect(() => {
+    const created = createAudioPlayer(source);
+    player.current = created;
+    return () => {
+      player.current = null;
+      created.release();
+    };
+  }, [source]);
+
+  return useCallback(() => {
+    try {
+      player.current?.seekTo(0);
+      player.current?.play();
+    } catch {
+      // Audio is a nicety; never let it break a check-off.
+    }
+  }, []);
+}
+
 /**
  * Wraps the habit mutators with the core-loop reward layer (haptics, sound, milestone/all-done
  * events). This is the only module that touches expo-haptics / expo-audio.
  */
 export function useHabitRewards() {
   const { habits, setCount } = useHabits();
-  const chime = useAudioPlayer(require('@/assets/sounds/chime.wav'));
-  const celebration = useAudioPlayer(require('@/assets/sounds/celebration.wav'));
+  const playChime = useSoundEffect(CHIME);
+  const playCelebration = useSoundEffect(CELEBRATION);
   const [lastEvent, setLastEvent] = useState<RewardEvent | null>(null);
   const eventKey = useRef(0);
   const clearTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -41,15 +71,6 @@ export function useHabitRewards() {
     clearTimer.current = setTimeout(() => setLastEvent(null), EVENT_LIFETIME_MS);
   }, []);
 
-  const play = useCallback((player: ReturnType<typeof useAudioPlayer>) => {
-    try {
-      player.seekTo(0);
-      player.play();
-    } catch {
-      // Audio is a nicety; never let it break a check-off.
-    }
-  }, []);
-
   const haptic = useCallback((run: () => Promise<void>) => {
     if (Platform.OS === 'web') return;
     run().catch(() => {});
@@ -57,8 +78,8 @@ export function useHabitRewards() {
 
   const celebrateChallenge = useCallback(() => {
     haptic(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
-    play(celebration);
-  }, [celebration, haptic, play]);
+    playCelebration();
+  }, [haptic, playCelebration]);
 
   const changeCount = useCallback(
     (id: string, delta: number) => {
@@ -81,14 +102,14 @@ export function useHabitRewards() {
 
       const after = habits.map((h) => (h.id === id ? next : h));
       if (!allCompleted(habits) && allCompleted(after)) {
-        play(celebration);
+        playCelebration();
         emit({ type: 'allDone', milestone });
       } else {
-        play(chime);
+        playChime();
         if (milestone) emit({ type: 'milestone', ...milestone });
       }
     },
-    [habits, setCount, haptic, play, chime, celebration, emit],
+    [habits, setCount, haptic, playChime, playCelebration, emit],
   );
 
   const toggleDaily = useCallback(

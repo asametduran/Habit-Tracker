@@ -11,7 +11,7 @@ import { Accent, Spacing } from '@/constants/theme';
 import { useHabitRewards } from '@/hooks/use-habit-rewards';
 import { useHabits } from '@/hooks/use-habits';
 import { useTheme } from '@/hooks/use-theme';
-import { isCompleted } from '@/lib/habit-logic';
+import { NAME_MAX, isCompleted } from '@/lib/habit-logic';
 
 const PRESET_DAYS = [3, 7, 14, 30];
 
@@ -144,6 +144,7 @@ function ChallengeForm({ onStart, onCancel }: ChallengeFormProps) {
         placeholder="e.g. Summer reset"
         placeholderTextColor={theme.textSecondary}
         style={inputStyle}
+        maxLength={NAME_MAX}
         accessibilityLabel="Challenge name"
       />
 

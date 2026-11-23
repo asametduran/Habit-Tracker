@@ -7,6 +7,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useAuth } from '@/hooks/use-auth';
 import { useHabits, type Habit } from '@/hooks/use-habits';
 
 const MAX_STARTER_HABITS = 3;
@@ -51,6 +52,8 @@ export function OnboardingScreen() {
 }
 
 function IntroStep({ onNext }: { onNext: () => void }) {
+  const { status, requestAuth } = useAuth();
+
   return (
     <Screen title="How it works">
       <ThemedText themeColor="textSecondary">
@@ -70,6 +73,9 @@ function IntroStep({ onNext }: { onNext: () => void }) {
       ))}
 
       <Button label="Get started" onPress={onNext} />
+      {status === 'signedOut' ? (
+        <Button label="I already have an account" variant="secondary" onPress={requestAuth} />
+      ) : null}
     </Screen>
   );
 }

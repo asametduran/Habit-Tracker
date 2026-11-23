@@ -7,4 +7,8 @@ export async function ensurePermission(): Promise<boolean> {
   return false;
 }
 
-export async function syncNotifications(_settings: Settings, _habits: Habit[]): Promise<void> {}
+export async function syncNotifications(
+  _settings: Settings,
+  _habits: Habit[],
+  _options?: { coachPush?: boolean },
+): Promise<void> {}

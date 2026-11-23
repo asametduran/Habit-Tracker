@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/chip';
+import { ReflectionCard } from '@/components/reflection-card';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -108,6 +109,8 @@ export default function HistoryScreen() {
         ) : null}
       </ThemedView>
 
+      <ReflectionCard />
+
       <ThemedText type="subtitle">Consistency</ThemedText>
       {habits.length === 0 ? (
         <ThemedText type="small" themeColor="textSecondary">
@@ -143,7 +146,9 @@ export default function HistoryScreen() {
 
 function Stat({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <ThemedView style={styles.stat}>
+    // A tile inside a card: the "selected" shade, like other nested boxes (an untyped ThemedView
+    // would paint the page background, a black block in dark mode).
+    <ThemedView type="backgroundSelected" style={styles.stat}>
       <ThemedText style={styles.statIcon}>{icon}</ThemedText>
       <ThemedText type="smallBold" style={styles.statValue}>
         {value}

@@ -43,6 +43,7 @@ export type Settings = {
   dailyReminder: boolean; // master switch for per-habit reminders
   afternoonNudge: boolean;
   streakAlert: boolean;
+  aiCoach: boolean; // daily nudges and reflections from Gemini (signed-in only)
 };
 
 export type HabitState = {
@@ -60,6 +61,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyReminder: true,
   afternoonNudge: true,
   streakAlert: true,
+  aiCoach: true,
 };
 
 // Dev-only: shifts "today" forward so day rollovers and challenges can be tested without waiting.
@@ -121,12 +123,22 @@ export function allCompleted(habits: Habit[]): boolean {
   return habits.length > 0 && habits.every(isCompleted);
 }
 
+/** The longest habit or challenge name the app keeps (the server rejects anything over 200). */
+export const NAME_MAX = 100;
+
+/** A name as the app stores it: trimmed and cut to NAME_MAX characters, never mid-emoji. */
+export function cleanName(name: string): string {
+  const chars = Array.from(name.trim());
+  return chars.length > NAME_MAX ? chars.slice(0, NAME_MAX).join('').trimEnd() : chars.join('');
+}
+
 /** Migrates records stored by the pre-redesign model (`completedToday`, no type/count). */
 export function migrateHabit(raw: Record<string, unknown>): Habit {
   if (typeof raw.type === 'string') {
     const habit = raw as unknown as Habit;
     return {
       ...habit,
+      name: cleanName(String(habit.name)),
       bestStreak: habit.bestStreak ?? habit.streak,
       createdAt: habit.createdAt ?? getToday(),
     };
@@ -135,7 +147,7 @@ export function migrateHabit(raw: Record<string, unknown>): Habit {
   return {
     createdAt: getToday(),
     id: String(raw.id),
-    name: String(raw.name),
+    name: cleanName(String(raw.name)),
     type: 'daily',
     count: raw.completedToday ? 1 : 0,
     streak,

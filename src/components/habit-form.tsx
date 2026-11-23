@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import type { HabitType } from '@/hooks/use-habits';
 import { useTheme } from '@/hooks/use-theme';
+import { NAME_MAX } from '@/lib/habit-logic';
 
 export type HabitFormValue = { name: string; type: HabitType; target?: number };
 
@@ -45,6 +46,7 @@ export function HabitForm({ initial, submitLabel, onSubmit, onCancel }: HabitFor
         placeholderTextColor={theme.textSecondary}
         style={inputStyle}
         returnKeyType="done"
+        maxLength={NAME_MAX}
         accessibilityLabel="Habit name"
       />
 

@@ -1,6 +1,7 @@
 import { FlatList, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CoachCard } from '@/components/coach-card';
 import { ConfettiBurst } from '@/components/confetti-burst';
 import { DailyProgressBar } from '@/components/daily-progress-bar';
 import { HabitCard } from '@/components/habit-card';
@@ -45,6 +46,7 @@ export default function TodayScreen() {
           keyExtractor={(habit) => habit.id}
           contentContainerStyle={styles.listContent}
           style={styles.list}
+          ListHeaderComponent={<CoachCard />}
           renderItem={({ item }) => (
             <HabitCard
               habit={item}
