@@ -32,9 +32,26 @@ yarn-error.*
 
 # env files can hold secrets (any folder, including supabase/functions/.env); only the
 # template is committed
-.env
-.env.*
+.env*
 !.env.example
+
+# local databases (SQLite files and their journals)
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# scratch / temporary output
+scratchpad/
+/tmp/
+/temp/
+*.tmp
+*.log
+
+# Claude Code per-user settings (the shared .claude/settings.json stays tracked)
+.claude/settings.local.json
 
 # Deno writes a lockfile wherever it runs; the functions' real one is supabase/functions/deno.lock
 /deno.lock

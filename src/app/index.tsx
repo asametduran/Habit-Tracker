@@ -7,7 +7,6 @@ import { DailyProgressBar } from '@/components/daily-progress-bar';
 import { HabitCard } from '@/components/habit-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useHabitRewards } from '@/hooks/use-habit-rewards';
 import { useHabits } from '@/hooks/use-habits';
@@ -62,8 +61,6 @@ export default function TodayScreen() {
             </ThemedText>
           }
         />
-
-        {Platform.OS === 'web' && <WebBadge />}
       </View>
       <ConfettiBurst triggerKey={confettiKey} />
     </ThemedView>
